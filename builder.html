@@ -75,12 +75,17 @@ padding:8px 12px;border-radius:8px;font-size:14px;opacity:.95;}
 const ROWS=7,COLS=5,LS_KEY='rc_puzzles_7x5';
 const board=document.getElementById('board'),modeLbl=document.getElementById('modeLbl'),
 lenSel=document.getElementById('lenSel'),fileInput=document.getElementById('fileInput'),
-puzzleSel=document.getElementById('puzzleSel'),deleteBtn=document.getElementById('deleteSelected');
+puzzleSel=document.getElementById('puzzleSel'),deleteBtn=document.getElementById('deleteSelected'),
+openBtn=document.getElementById('openSelected'),saveBtn=document.getElementById('saveBtn'),
+clearBtn=document.getElementById('clearBtn');
 let mode='pole',uid=1,firstSel=null;
 const state={poles:[],planks:[],start:null,goal:null,plankEls:new Map()};
 
+/* ---------- UI helpers ---------- */
 function toast(m,s=1500){const t=document.createElement('div');t.className='toast';t.textContent=m;
 document.body.appendChild(t);setTimeout(()=>t.remove(),s);}
+
+/* ---------- Board ---------- */
 function buildBoard(){board.innerHTML='';for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
 const d=document.createElement('div');d.className='cell '+((r===0||r===ROWS-1)?'bank':'water');
 d.dataset.r=r;d.dataset.c=c;board.appendChild(d);}}buildBoard();
@@ -88,28 +93,62 @@ function getCell(r,c){return board.children[r*COLS+c];}
 function isBank(r){return r===0||r===ROWS-1;}
 function isSame(a,b){return a&&b&&a.r===b.r&&a.c===b.c;}
 function clearSel(){document.querySelectorAll('.selPole').forEach(e=>e.classList.remove('selPole'));firstSel=null;}
-function setMode(m){mode=m;modeLbl.textContent={pole:'Tolpat',start:'Start',goal:'Goal',plank:'Lankku',erase:'Poista Lankku'}[m];
-document.querySelectorAll('#modePole,#modeStart,#modeGoal,#modePlank,#modeErase').forEach(b=>b.classList.remove('active'));
-({pole:modePole,start:modeStart,goal:modeGoal,plank:modePlank,erase:modeErase}[m]).classList.add('active');
-board.classList.toggle('board-erase',m==='erase');clearSel();}
+
+function setMode(m){
+  mode=m;modeLbl.textContent={pole:'Tolpat',start:'Start',goal:'Goal',plank:'Lankku',erase:'Poista Lankku'}[m];
+  document.querySelectorAll('#modePole,#modeStart,#modeGoal,#modePlank,#modeErase').forEach(b=>b.classList.remove('active'));
+  ({pole:modePole,start:modeStart,goal:modeGoal,plank:modePlank,erase:modeErase}[m]).classList.add('active');
+  board.classList.toggle('board-erase',m==='erase');
+  clearSel();
+}
 modePole.onclick=()=>setMode('pole');modeStart.onclick=()=>setMode('start');
 modeGoal.onclick=()=>setMode('goal');modePlank.onclick=()=>setMode('plank');modeErase.onclick=()=>setMode('erase');
 board.addEventListener('dblclick',()=>setMode('plank'));
 
+/* ---------- Badges ---------- */
 function ensureBadge(r,c,t){const cell=getCell(r,c);cell.querySelectorAll('.badge').forEach(b=>b.remove());
 const b=document.createElement('div');b.className='badge '+(t==='start'?'start-badge':'goal-badge');
 b.textContent=t==='start'?'S':'G';cell.appendChild(b);}
 function clearBadge(p){if(!p)return;getCell(p.r,p.c).querySelectorAll('.badge').forEach(b=>b.remove());}
-function setStart(r,c){if(!isBank(r)){toast('Start vain rannoille');return;}
-getCell(r,c).classList.remove('pole');state.poles=state.poles.filter(p=>!(p.r===r&&p.c===c));
-clearBadge(state.start);state.start={r,c};ensureBadge(r,c,'start');}
-function setGoal(r,c){if(!isBank(r)){toast('Goal vain rannoille');return;}
-getCell(r,c).classList.remove('pole');state.poles=state.poles.filter(p=>!(p.r===r&&p.c===c));
-clearBadge(state.goal);state.goal={r,c};ensureBadge(r,c,'goal');}
-function togglePole(r,c,cell){if(isBank(r)){toast('Rannalla vain Start tai Goal');return;}
-const i=state.poles.findIndex(p=>p.r===r&&p.c===c);
-if(i>=0){state.poles.splice(i,1);cell.classList.remove('pole');}
-else{state.poles.push({r,c});cell.classList.add('pole');}}
+
+/* ---------- Start/Goal/Pole ---------- */
+function setStart(r,c){
+  if(!isBank(r)){toast('Start vain rannoille');return;}
+  getCell(r,c).classList.remove('pole');
+  state.poles=state.poles.filter(p=>!(p.r===r&&p.c===c));
+  clearBadge(state.start);state.start={r,c};ensureBadge(r,c,'start');
+}
+function setGoal(r,c){
+  if(!isBank(r)){toast('Goal vain rannoille');return;}
+  getCell(r,c).classList.remove('pole');
+  state.poles=state.poles.filter(p=>!(p.r===r&&p.c===c));
+  clearBadge(state.goal);state.goal={r,c};ensureBadge(r,c,'goal');
+}
+
+function togglePole(r, c, cell) {
+  // Sallitaan tolpat myös rannoilla
+  // Poista mahdollinen start/goal-merkintä jos osuu samaan ruutuun
+  if (state.start && state.start.r === r && state.start.c === c) {
+    clearBadge(state.start);
+    state.start = null;
+  }
+  if (state.goal && state.goal.r === r && state.goal.c === c) {
+    clearBadge(state.goal);
+    state.goal = null;
+  }
+
+  const i = state.poles.findIndex(p => p.r === r && p.c === c);
+  if (i >= 0) {
+    state.poles.splice(i, 1);
+    cell.classList.remove('pole');
+  } else {
+    state.poles.push({ r, c });
+    cell.classList.add('pole');
+  }
+}
+
+
+/* ---------- Planks ---------- */
 function cellCenter(r,c){const cb=getCell(r,c).getBoundingClientRect(),bb=board.getBoundingClientRect();
 return{x:(cb.left-bb.left)+cb.width/2,y:(cb.top-bb.top)+cb.height/2};}
 function drawPlank(p){const A=cellCenter(p.r1,p.c1),B=cellCenter(p.r2,p.c2),dx=B.x-A.x,dy=B.y-A.y,len=Math.hypot(dx,dy);
@@ -122,85 +161,135 @@ function plankBetween(a,b){return state.planks.find(p=>
 (p.r1===a.r&&p.c1===a.c&&p.r2===b.r&&p.c2===b.c)||(p.r1===b.r&&p.c1===b.c&&p.r2===a.r&&p.c2===a.c));}
 function isPole(p){if(!p)return false;if(isSame(p,state.start)||isSame(p,state.goal))return true;
 return state.poles.some(x=>x.r===p.r&&x.c===p.c);}
-function tryAddPlank(a,b){if(!isPole(a)||!isPole(b)){toast('Valitse kaksi tolppaa');return;}
-const dr=Math.abs(a.r-b.r),dc=Math.abs(a.c-b.c);if(dr&&dc){toast('Vain suora');return;}
-const len=dr+dc,want=+lenSel.value;if(len!==want){toast(`Pituus ${len}`);return;}
-if(isBank(a.r)||isBank(b.r)){if(dc){toast('Rannalta pystysuora');return;}if(isBank(a.r)&&isBank(b.r)){toast('Ranta↔ranta ei');return;}}
-const p={r1:a.r,c1:a.c,r2:b.r,c2:b.c,id:'p'+uid++};state.planks.push(p);drawPlank(p);}
+function tryAddPlank(a,b){
+  if(!isPole(a)||!isPole(b)){toast('Valitse kaksi tolppaa');return;}
+  const dr=Math.abs(a.r-b.r),dc=Math.abs(a.c-b.c);if(dr&&dc){toast('Vain suora');return;}
+  const len=dr+dc,want=+lenSel.value;if(len!==want){toast(`Pituus ${len}`);return;}
+  if(isBank(a.r)||isBank(b.r)){
+    if(dc){toast('Rannalta pystysuora');return;}
+    if(isBank(a.r)&&isBank(b.r)){toast('Ranta↔ranta ei');return;}
+  }
+  const p={r1:a.r,c1:a.c,r2:b.r,c2:b.c,id:'p'+uid++};state.planks.push(p);drawPlank(p);
+}
 
+/* ---------- Click handling ---------- */
 board.addEventListener('click',e=>{
-const plankEl=e.target.closest('.plank');
-if(mode==='erase'&&plankEl){removePlankById(plankEl.dataset.pid);return;}
-const cell=e.target.closest('.cell');if(!cell)return;
-const r=+cell.dataset.r,c=+cell.dataset.c,p={r,c};
-if(mode==='pole')togglePole(r,c,cell);
-else if(mode==='start')setStart(r,c);
-else if(mode==='goal')setGoal(r,c);
-else if(mode==='plank'||mode==='erase'){
-if(!isPole(p)){toast('Valitse tolppa');return;}
-if(firstSel&&isSame(firstSel,p)){clearSel();return;}
-if(!firstSel){firstSel=p;cell.classList.add('selPole');}
-else{const a=firstSel,b=p;clearSel();
-if(mode==='plank')tryAddPlank(a,b);
-else if(mode==='erase'){const pl=plankBetween(a,b);if(pl)removePlankById(pl.id);else toast('Ei lankkua.');}}}});
+  const plankEl=e.target.closest('.plank');
+  if(mode==='erase'&&plankEl){removePlankById(plankEl.dataset.pid);return;}
+  const cell=e.target.closest('.cell');if(!cell)return;
+  const r=+cell.dataset.r,c=+cell.dataset.c,p={r,c};
+  if(mode==='pole')togglePole(r,c,cell);
+  else if(mode==='start')setStart(r,c);
+  else if(mode==='goal')setGoal(r,c);
+  else if(mode==='plank'||mode==='erase'){
+    if(!isPole(p)){toast('Valitse tolppa');return;}
+    if(firstSel&&isSame(firstSel,p)){clearSel();return;}
+    if(!firstSel){firstSel=p;cell.classList.add('selPole');}
+    else{const a=firstSel,b=p;clearSel();
+      if(mode==='plank')tryAddPlank(a,b);
+      else if(mode==='erase'){const pl=plankBetween(a,b);if(pl)removePlankById(pl.id);else toast('Ei lankkua.');}
+    }
+  }
+});
 
+/* ---------- Clear ---------- */
 clearBtn.onclick=()=>{document.querySelectorAll('.cell').forEach(c=>{
-c.classList.remove('pole','selPole');c.querySelectorAll('.badge').forEach(b=>b.remove());});
-state.plankEls.forEach(e=>e.remove());state.plankEls.clear();
-state.poles=[];state.planks=[];state.start=null;state.goal=null;firstSel=null;uid=1;};
+  c.classList.remove('pole','selPole');c.querySelectorAll('.badge').forEach(b=>b.remove());});
+  state.plankEls.forEach(e=>e.remove());state.plankEls.clear();
+  state.poles=[];state.planks=[];state.start=null;state.goal=null;firstSel=null;uid=1;
+};
 
+/* ---------- Storage helpers ---------- */
+function getList(){ // EI koske valikkoon
+  try{return JSON.parse(localStorage.getItem(LS_KEY)||'[]');}catch{return [];}
+}
+function loadList(preserve=true){ // Rakentaa valikon, säilyttää valinnan
+  const prev = preserve ? puzzleSel.value : null;
+  const arr = getList();
+  puzzleSel.innerHTML='';
+  arr.forEach((p,i)=>{
+    const o=document.createElement('option');
+    const s=p.start?`S(${p.start.r},${p.start.c})`:'S(-)';const g=p.goal?`G(${p.goal.r},${p.goal.c})`:'G(-)';
+    o.value=i;o.textContent=`#${i+1} ${s} ${g} | planks:${(p.planks||[]).length}`;puzzleSel.appendChild(o);
+  });
+  if(prev!==null && Array.from(puzzleSel.options).some(o=>o.value===prev)) puzzleSel.value=prev;
+  return arr;
+}
+function saveList(a){ localStorage.setItem(LS_KEY,JSON.stringify(a,null,2)); loadList(); }
+
+/* ---------- Save to JSON ---------- */
+saveBtn.onclick=()=>{const p=currentPuzzle(),arr=getList();arr.push(p);saveList(arr);
+  const blob=new Blob([JSON.stringify(arr,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='puzzles_7x5.json';a.click();
+  toast('Tallennettu',1500);
+};
+
+/* ---------- Export current puzzle ---------- */
 function currentPuzzle(){return{rows:ROWS,cols:COLS,start:state.start,goal:state.goal,
 poles:state.poles.slice(),planks:state.planks.map(p=>[p.r1,p.c1,p.r2,p.c2])};}
-function loadList(){let arr=[];try{arr=JSON.parse(localStorage.getItem(LS_KEY)||'[]');}catch{}
-puzzleSel.innerHTML='';arr.forEach((p,i)=>{const o=document.createElement('option');
-const s=p.start?`S(${p.start.r},${p.start.c})`:'S(-)';const g=p.goal?`G(${p.goal.r},${p.goal.c})`:'G(-)';
-o.value=i;o.textContent=`#${i+1} ${s} ${g} | planks:${(p.planks||[]).length}`;puzzleSel.appendChild(o);});return arr;}
-function saveList(a){localStorage.setItem(LS_KEY,JSON.stringify(a,null,2));loadList();}
-saveBtn.onclick=()=>{const p=currentPuzzle(),arr=loadList();arr.push(p);saveList(arr);
-const blob=new Blob([JSON.stringify(arr,null,2)],{type:'application/json'});
-const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='puzzles_7x5.json';a.click();
-toast('Tallennettu',1500);};
 
-openSelected.onclick=()=>{const arr=loadList(),idx=+puzzleSel.value;if(!(idx>=0)){toast('Ei valintaa');return;}
-loadPuzzle(arr[idx]);toast(`Avattu #${idx+1}`);};
-function loadPuzzle(p){clearBtn.onclick();if(p.start)setStart(p.start.r,p.start.c);
-if(p.goal)setGoal(p.goal.r,p.goal.c);
-(p.poles||[]).forEach(({r,c})=>{if(!isBank(r)){state.poles.push({r,c});getCell(r,c).classList.add('pole');}});
-(p.planks||[]).forEach(a=>{const [r1,c1,r2,c2]=a;const obj={r1,c1,r2,c2,id:'p'+uid++};state.planks.push(obj);drawPlank(obj);});}
+/* ---------- Open selected (FIX: älä kutsu loadList() ennen indeksin lukua) ---------- */
+openBtn.onclick=()=>{const idx=+puzzleSel.value; if(!(idx>=0)){toast('Ei valintaa');return;}
+  const arr=getList(); if(!arr[idx]){toast('Valinta ei kelpaa');return;}
+  loadPuzzle(arr[idx]); toast(`Avattu #${idx+1}`);
+};
 
-/* --- JSON-lataus KORVAA kaikki aiemmat tallenteet --- */
-fileInput.onchange=async(e)=>{
-const f=e.target.files[0];if(!f)return;
-try{const t=await f.text();const data=JSON.parse(t);let replaced=[];
-if(Array.isArray(data)){replaced=data.filter(p=>(p&&p.rows===ROWS&&p.cols===COLS)||(p&&!p.rows&&!p.cols));}
-else if(typeof data==='object'&&data){if((data.rows===ROWS&&data.cols===COLS)||(!data.rows&&!data.cols))replaced=[data];}
-else{toast('Virheellinen JSON');return;}
-localStorage.setItem(LS_KEY,JSON.stringify(replaced,null,2));
-loadList();clearBtn.onclick();
-if(replaced.length){loadPuzzle(replaced[0]);puzzleSel.value="0";
-toast(`Korvattu. Ladattu ${replaced.length} pulmaa ja avattu #1.`,2200);}
-else toast('Korvattu, mutta ei pulmia.',2000);}
-catch(err){console.error(err);toast('Lataus epäonnistui');}};
-
-/* --- Poista valittu tallenne --- */
+/* ---------- Delete selected (FIX: lue idx ensin) ---------- */
 deleteBtn.onclick=()=>{
-  const arr=loadList();
-  const idx=+puzzleSel.value;
+  const idx = +puzzleSel.value;
   if(!(idx>=0)){ toast('Ei valittua pulmaa.'); return; }
-  const removed=arr.splice(idx,1)[0];
-  saveList(arr);
-  // jos poistettu oli avoinna, avaa seuraava tai tyhjennä
+  const arr = getList();
+  if(!arr[idx]){ toast('Valinta ei kelpaa.'); return; }
+  arr.splice(idx,1);
+  saveList(arr); // päivittää valikon
   clearBtn.onclick();
   if(arr.length>0){
     const nextIdx = Math.min(idx, arr.length-1);
     loadPuzzle(arr[nextIdx]);
     puzzleSel.value = String(nextIdx);
-    toast(`Poistettu #${idx+1}. Avattu #${nextIdx+1}.`, 2000);
+    toast(`Poistettu. Avattu #${nextIdx+1}.`, 1800);
   }else{
-    toast('Kaikki poistettu. Lista tyhjä.', 1800);
+    toast('Kaikki poistettu. Lista tyhjä.', 1600);
   }
 };
-loadList();
+
+/* ---------- Load a puzzle to board ---------- */
+function loadPuzzle(p){
+  clearBtn.onclick();
+  if(p.start) setStart(p.start.r,p.start.c);
+  if(p.goal)  setGoal(p.goal.r,p.goal.c);
+  (p.poles||[]).forEach(({r,c})=>{
+    if(!isBank(r)){ state.poles.push({r,c}); getCell(r,c).classList.add('pole'); }
+  });
+  (p.planks||[]).forEach(a=>{
+    const [r1,c1,r2,c2]=a; const obj={r1,c1,r2,c2,id:'p'+uid++}; state.planks.push(obj); drawPlank(obj);
+  });
+}
+
+/* ---------- File import replaces storage ---------- */
+fileInput.onchange=async(e)=>{
+  const f=e.target.files[0]; if(!f) return;
+  try{
+    const t=await f.text(); const data=JSON.parse(t); let replaced=[];
+    if(Array.isArray(data)){
+      replaced=data.filter(p=>(p&&p.rows===ROWS&&p.cols===COLS)||(p&&!p.rows&&!p.cols));
+    }else if(typeof data==='object'&&data){
+      if((data.rows===ROWS&&data.cols===COLS)||(!data.rows&&!data.cols)) replaced=[data];
+    }else{ toast('Virheellinen JSON'); return; }
+    localStorage.setItem(LS_KEY,JSON.stringify(replaced,null,2));
+    loadList(false); // ei säilytetä vanhaa valintaa, koska data korvattiin
+    clearBtn.onclick();
+    if(replaced.length){
+      loadPuzzle(replaced[0]); puzzleSel.value="0";
+      toast(`Korvattu. Ladattu ${replaced.length} pulmaa ja avattu #1.`,2200);
+    }else{
+      toast('Korvattu, mutta ei pulmia.',2000);
+    }
+  }catch(err){ console.error(err); toast('Lataus epäonnistui'); }
+};
+
+/* ---------- Init ---------- */
+loadList(false);
 </script>
 </body>
 </html>
