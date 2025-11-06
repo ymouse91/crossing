@@ -2,59 +2,98 @@
 <html lang="fi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>River Crossing (PWA-demo)</title>
-  <meta name="theme-color" content="#0d6efd">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover, user-scalable=no" />
+  <title>River Crossing</title>
   <style>
-    :root{
-      --bg:#0f172a; --ink:#e5e7eb; --muted:#94a3b8; --accent:#0d6efd; --good:#22c55e; --bad:#ef4444;
-      --board:#2f3947; --water:#1b221b; --bank:#2f3947; --plank:#f5deb3; --plank2:#f3c98b; --plank3:#e0a458;
-      --cell:84; /* svg unit px per grid cell */
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; background:linear-gradient(180deg,#0b1021,#0f1429 40%,#0b1021);
-      color:var(--ink); font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
-      display:grid; grid-template-rows:auto auto 1fr; gap:12px; place-items:center; padding: max(env(safe-area-inset-top),14px) 10px max(env(safe-area-inset-bottom),16px);
-    }
-    header{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:center }
-    h1{margin:0; font-size:20px; letter-spacing:.2px}
-    .meta{font-size:12px; color:var(--muted)}
-    .hud{display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:center}
-    button{background:var(--accent); color:white; border:0; padding:10px 14px; border-radius:12px; font-weight:700; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.25)}
-    button.ghost{ background:#25324a; color:#cbd5e1 }
-    button:disabled{ opacity:.6; cursor:not-allowed }
-    .pill{ padding:6px 10px; border-radius:999px; background:#1e293b; color:#cbd5e1; font-size:12px }
-    .wrap{ display:grid; gap:10px; place-items:center }
-    svg{ width:min(96vw, calc(var(--cell)*5px + 24px)); height:auto; border-radius:16px; box-shadow: 0 12px 40px rgba(0,0,0,.35)}
-    select{ background:#1e293b; color:#cbd5e1; border:1px solid #334155; border-radius:10px; padding:8px 10px; font-weight:700 }
+:root{
+  --bg:#0b1021; --ink:#e5e7eb; --muted:#94a3b8;
+  --bank:#0f172a; --water:#0b132a;
+  --plank:#d1d5db; --plank2:#c4b5fd; --plank3:#86efac;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;width:100%;margin:0;padding:0;}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Ubuntu,sans-serif;
+  display:grid;grid-template-rows:auto auto 1fr;align-items:start;justify-items:center;
+  gap:clamp(4px, 1.5vh, 12px);
+  padding:clamp(4px, 2vh, 8px) clamp(4px, 2vw, 12px) clamp(4px, 2vh, 12px);
+  padding-top:max(env(safe-area-inset-top), clamp(4px, 2vh, 8px));
+  padding-bottom:max(env(safe-area-inset-bottom), clamp(4px, 2vh, 8px));
+  min-height:100vh;overflow-x:hidden;
+}
+h1{margin:4px 0;font-size:clamp(16px, 5vw, 20px);font-weight:700;}
+.panel{
+  width:min(95vw, 100%);background:#0b1021;border:1px solid #1f2937;border-radius:12px;
+  box-shadow:0 6px 20px #00000055;padding:8px 10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;
+}
+.panel .left{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center;width:100%;}
+.panel button{
+  appearance:none;border:1px solid #334155;background:#111827;color:var(--ink);
+  padding:6px 8px;border-radius:8px;cursor:pointer;font-size:clamp(12px, 3vw, 14px);font-weight:500;white-space:nowrap;flex-shrink:0;
+}
+.panel button:active{opacity:.7;}
+.panel button:disabled{opacity:.5;cursor:not-allowed;}
+.panel small{color:var(--muted);font-size:clamp(11px, 2.5vw, 13px);}
+.wrap{
+  width:min(95vw, 100%);max-width:500px;aspect-ratio:5/7;position:relative;
+  display:flex;align-items:center;justify-content:center;
+}
+svg{
+  width:100%;height:100%;display:block;border-radius:16px;border:1px solid #1f2937;
+  background:#0b1021;
+}
+@media (max-width:480px) {
+  body{gap:6px;padding:max(env(safe-area-inset-top),6px) 6px max(env(safe-area-inset-bottom),6px);}
+  h1{margin:2px 0;}
+  .panel{padding:6px 8px;gap:6px;border-radius:10px;}
+  .panel button{padding:5px 7px;border-radius:7px;}
+}
+@media (min-width:768px) {
+  body{gap:12px;padding:max(env(safe-area-inset-top),14px) 12px max(env(safe-area-inset-bottom),14px);}
+  .panel{width:min(920px,95vw);padding:10px 12px;gap:12px;justify-content:space-between;}
+  .panel .left{width:auto;justify-content:flex-start;}
+  .wrap{width:min(920px,95vw);}
+}
+@media (orientation:landscape) and (max-height:600px) {
+  body{
+    grid-template-rows:auto auto 1fr;
+    gap:clamp(2px, 1vh, 8px);
+    padding:max(env(safe-area-inset-top), 2px) clamp(4px, 2vw, 12px) max(env(safe-area-inset-bottom), 2px);
+  }
+  h1{margin:0;font-size:clamp(14px, 2.5vh, 18px);}
+  .panel{
+    padding:clamp(4px, 0.8vh, 8px) clamp(6px, 1.5vw, 10px);
+    gap:clamp(4px, 1vw, 8px);
+    width:min(95vw, 100%);
+  }
+  .panel button{padding:clamp(3px, 0.7vh, 6px) clamp(6px, 1vw, 8px);font-size:clamp(11px, 1.8vh, 13px);}
+  .wrap{
+    width:95vw;
+    max-width:none;
+    aspect-ratio:5/7;
+  }
+}
   </style>
 </head>
 <body>
-  <header>
-    <h1>River Crossing</h1>
-    <span class="meta" id="today" style="display:none;"></span>
-  </header>
-
-  <!-- Vain valinta + seuraava -->
-  <div class="hud">
-    <label>Valitse pulma:
-      <select id="puzzleSel"></select>
-    </label>
-    <button id="openSelected">Avaa</button>
-    <button id="next">Seuraava</button>
-    <button id="reset" class="ghost">Palauta</button>
-    <span class="pill">Siirrot: <b id="moves">0</b></span>
-    <span class="pill" style="display:none;">Kantoon: <span class="carry" id="carry">–</span></span>
-    <span class="pill" style="display:none;">Aloitus: <b id="startLbl">–</b>, Maali: <b id="goalLbl">–</b></span>
+  <h1>River Crossing - Thinkfun</h1>
+  <div class="panel">
+    <div class="left">
+      <button id="prev">Edellinen</button>
+      <button id="next">Seuraava</button>
+      <span id="meta"><small></small></span>
+      <button id="reset">Palauta alku</button>
+      <button id="undo" disabled style="display:none;">Peru</button>
+    </div>
+    <div class="left">
+      <small>Siirrot: <b id="moves">0</b></small>
+    </div>
   </div>
 
   <div class="wrap">
-    <!-- SVG pelilauta -->
-    <svg id="board" viewBox="0 0 500 640" aria-label="River Crossing board"></svg>
+    <svg id="board" viewBox="0 0 500 640" xmlns="http://www.w3.org/2000/svg" aria-label="pelilauta"></svg>
   </div>
-
 <script>
 /* =====================
    PWA manifest + SW (yhteen tiedostoon)
@@ -65,8 +104,7 @@
     short_name: "Crossing",
     start_url: "./",
     display: "standalone",
-    background_color: "#0b1021",
-    theme_color: "#0d6efd",
+
     icons: [
       { src: "data:image/svg+xml;utf8,<?xml version='1.0' encoding='UTF-8'?>\n<svg xmlns='http://www.w3.org/2000/svg' width='512' height='512' viewBox='0 0 512 512'><rect width='512' height='512' fill='%230b1021'/><rect x='32' y='96' width='448' height='64' rx='12' fill='%231f2937'/><rect x='32' y='352' width='448' height='64' rx='12' fill='%231f2937'/><g stroke='%23a7f3d0' stroke-width='12'>{grid}</g><g stroke='%23f3c98b' stroke-width='24' stroke-linecap='round'><line x1='96' y1='192' x2='416' y2='192'/><line x1='96' y1='272' x2='320' y2='272'/><line x1='192' y1='352' x2='416' y2='352'/></g><circle cx='96' cy='192' r='18' fill='%2338bdf8'/></svg>", sizes:"512x512", type:"image/svg+xml"}
     ]
@@ -85,497 +123,342 @@
   }
 })();
 </script>
-
 <script>
-// =====================
-// River Crossing – pelilogiikka (5×5, pankit molemmissa päissä)
-// =====================
-const CELL = 84; // px per unit (svg scale)
-const W = 5, H = 5; // grid koko (0..4), pankit: y=-1 ja y=H
-const board = document.getElementById('board');
-const movesEl = document.getElementById('moves');
-const carryEl = document.getElementById('carry');
-const startLbl = document.getElementById('startLbl');
-const goalLbl  = document.getElementById('goalLbl');
-const todayEl  = document.getElementById('today');
+/* ===== perus ===== */
+const CELL=64, W=5, H=5;
+const board=document.getElementById('board');
+const metaEl=document.getElementById('meta').firstElementChild;
+const movesEl=document.getElementById('moves');
 
-// Pelin UI
-const puzzleSel   = document.getElementById('puzzleSel');
-const openBtn     = document.getElementById('openSelected');
-const nextBtn     = document.getElementById('next');
-
-// Päivämäärä
-(function(){
-  const d = new Date();
-  const fmt = d.toLocaleDateString('fi-FI', { weekday:'short', year:'numeric', month:'2-digit', day:'2-digit' });
-  todayEl.textContent = ` – ${fmt}`;
-})();
-
-// Pelitila
-const state = {
-  stumps: [],           // [{x,y}]  (y -1..H)
-  planks: [],           // [{len, x,y, dir:'h'|'v'}]
-  hiker: { pos:'bank', row:-1, col:2 },
-  carrying: 0,
-  start: { side:'top', col:2 },
-  goal:  { side:'bottom', col:2 },
-  moves: 0,
-  frozen: false,
-  snapshot: null
+const state={
+  start:{side:'bottom', col:0},
+  goal:{side:'top', col:4},
+  stumps:[],           // {x,y} – myös rannalla (y=-1 tai y=H)
+  planks:[],           // {len,x,y,dir:'h'|'v'} – x,y=min-pää
+  hiker:{pos:'bank', row:H, col:0},
+  carrying:0,
+  moves:0, frozen:false, _snapshot:null, _meta:''
 };
 
-// Ladatut pulmat muistissa
-let loadedPuzzles = [];
-let loadedIndex = -1;
-
-// ====== Apufunktiot ======
-function toast(msg, t=1500){ const d=document.createElement('div'); d.textContent=msg; d.className='pill'; d.style.position='fixed'; d.style.bottom='16px'; d.style.left='50%'; d.style.transform='translateX(-50%)'; d.style.background='#0f172a'; d.style.border='1px solid #334155'; d.style.padding='8px 10px'; d.style.zIndex='9999'; document.body.appendChild(d); setTimeout(()=>d.remove(), t); }
-function svg(tag, attrs={}){ const el = document.createElementNS('http://www.w3.org/2000/svg', tag); for(const k in attrs) el.setAttribute(k, attrs[k]); return el; }
-function rect(x,y,w,h,attrs={}){ return svg('rect', Object.assign({x,y,width:w,height:h}, attrs)); }
-function line(x1,y1,x2,y2,attrs={}){ return svg('line', Object.assign({x1,y1,x2,y2}, attrs)); }
-function circle(cx,cy,r,attrs={}){ return svg('circle', Object.assign({cx,cy,r}, attrs)); }
+/* ===== utilit ===== */
+function svg(tag,attrs={}){const e=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const k in attrs)e.setAttribute(k,attrs[k]);return e;}
+function rect(x,y,w,h,a={}){return svg('rect',Object.assign({x,y,width:w,height:h},a));}
+function line(x1,y1,x2,y2,a={}){return svg('line',Object.assign({x1,y1,x2,y2},a));}
+function circle(cx,cy,r,a={}){return svg('circle',Object.assign({cx,cy,r},a));}
 
 function stumpAt(x,y){
+  // tavalliset tolpat
   if(state.stumps.some(s=>s.x===x && s.y===y)) return true;
-  if(y===-1 && x===state.start.col) return true;
-  if(y===H  && x===state.goal.col)  return true;
+  // Start tolppa oikealla rannalla
+  if(state.start){
+    const sy = state.start.side==='top' ? -1 : H;
+    if(x===state.start.col && y===sy) return true;
+  }
+  // Goal tolppa oikealla rannalla
+  if(state.goal){
+    const gy = state.goal.side==='top' ? -1 : H;
+    if(x===state.goal.col && y===gy) return true;
+  }
   return false;
 }
-function inBounds(x,y){ return x>=0 && x<W && y>=0 && y<H; }
 function plankEndpoints(p){
-  const dx = p.dir==='h'?1:0, dy = p.dir==='v'?1:0;
-  return [ {x:p.x, y:p.y}, {x:p.x + dx*p.len, y:p.y + dy*p.len} ];
+  const dx=p.dir==='h'?1:0, dy=p.dir==='v'?1:0;
+  return [{x:p.x,y:p.y},{x:p.x+dx*p.len,y:p.y+dy*p.len}];
 }
 function neighborsFrom(x,y){
-  const adj = [];
+  const adj=[];
   for(const p of state.planks){
-    const [a,b] = plankEndpoints(p);
+    const [a,b]=plankEndpoints(p);
     if(a.x===x && a.y===y) adj.push(b);
     else if(b.x===x && b.y===y) adj.push(a);
   }
   return adj;
 }
-function atBankTop(){ return state.hiker.pos==='bank' && state.hiker.row===-1; }
-function atBankBottom(){ return state.hiker.pos==='bank' && state.hiker.row===H; }
-function canEnterGridFromBank(){
-  if(atBankTop())    return neighborsFrom(state.hiker.col, -1).length>0;
-  if(atBankBottom()) return neighborsFrom(state.hiker.col, H).length>0;
-  return false;
-}
 function reachedGoal(){
-  if(state.goal.side==='bottom'){
-    return state.hiker.pos==='bank' && state.hiker.row===H && state.hiker.col===state.goal.col;
-  } else {
-    return state.hiker.pos==='bank' && state.hiker.row===-1 && state.hiker.col===state.goal.col;
-  }
+  const gy = state.goal.side==='top' ? -1 : H;
+  return state.hiker.pos==='bank' && state.hiker.row===gy && state.hiker.col===state.goal.col;
 }
 
-// ====== Sijoitusvalidointi (EI tolpan yli, EI ristiin, EI limitys) ======
+/* ===== sijoitusvalidointi ===== */
 function segmentsOverlap(a1,a2,b1,b2){
-  // avustus: tarkista avoin väli [min,max] leikkautuuko >0 pituudelta (ei pelkkää päätepistettä)
-  const minA = Math.min(a1,a2), maxA = Math.max(a1,a2);
-  const minB = Math.min(b1,b2), maxB = Math.max(b1,b2);
-  const left = Math.max(minA, minB), right = Math.min(maxA, maxB);
-  return (right - left) > 0; // tiukasti positiivinen
+  const L=Math.max(Math.min(a1,a2),Math.min(b1,b2));
+  const R=Math.min(Math.max(a1,a2),Math.max(b1,b2));
+  return (R-L)>0;
 }
 function crossesExisting(newP){
-  const [na, nb] = plankEndpoints(newP);
+  const [na,nb]=plankEndpoints(newP);
   for(const q of state.planks){
-    const [qa, qb] = plankEndpoints(q);
-
-    // 1) Ristiin menevä (h vs v): sisäleikkaus ei saa tapahtua
-    if(newP.dir !== q.dir){
-      const h = newP.dir==='h' ? newP : q;
-      const v = newP.dir==='v' ? newP : q;
-      const [ha,hb] = plankEndpoints(h);
-      const [va,vb] = plankEndpoints(v);
-      const x = va.x;                    // v:n x on vakio
-      const y = ha.y;                    // h:n y on vakio
-      const onX = x > Math.min(ha.x,hb.x) && x < Math.max(ha.x,hb.x);
-      const onY = y > Math.min(va.y,vb.y) && y < Math.max(va.y,vb.y);
-      if(onX && onY) return true;        // sisäleikkaus -> kielletty
+    const [qa,qb]=plankEndpoints(q);
+    if(newP.dir!==q.dir){
+      const h=newP.dir==='h'?newP:q, v=newP.dir==='v'?newP:q;
+      const [ha,hb]=plankEndpoints(h), [va,vb]=plankEndpoints(v);
+      const x=va.x, y=ha.y;
+      const onX = x>Math.min(ha.x,hb.x) && x<Math.max(ha.x,hb.x);
+      const onY = y>Math.min(va.y,vb.y) && y<Math.max(va.y,vb.y);
+      if(onX&&onY) return true;
     }else{
-      // 2) Saman suuntaiset: limitys samalla linjalla kielletty, sallitaan vain täsmälleen yhteinen päätepiste
-      if(newP.dir==='h' && na.y===qa.y){
-        if(segmentsOverlap(na.x, nb.x, qa.x, qb.x)) return true;
-      }
-      if(newP.dir==='v' && na.x===qa.x){
-        if(segmentsOverlap(na.y, nb.y, qa.y, qb.y)) return true;
-      }
+      if(newP.dir==='h' && qa.y===na.y && segmentsOverlap(na.x,nb.x,qa.x,qb.x)) return true;
+      if(newP.dir==='v' && qa.x===na.x && segmentsOverlap(na.y,nb.y,qa.y,qb.y)) return true;
     }
   }
   return false;
 }
 function passesOverStump(newP){
-  const [a,b] = plankEndpoints(newP);
+  const [a,b]=plankEndpoints(newP);
   if(newP.dir==='h'){
-    const y = a.y;
-    const x0 = Math.min(a.x,b.x), x1 = Math.max(a.x,b.x);
-    for(let x=x0+1; x<=x1-1; x++){          // vain välipisteet
-      if(stumpAt(x,y)) return true;
-    }
+    const y=a.y, x0=Math.min(a.x,b.x), x1=Math.max(a.x,b.x);
+    for(let x=x0+1;x<=x1-1;x++) if(stumpAt(x,y)) return true;
   }else{
-    const x = a.x;
-    const y0 = Math.min(a.y,b.y), y1 = Math.max(a.y,b.y);
-    for(let y=y0+1; y<=y1-1; y++){
-      if(stumpAt(x,y)) return true;
-    }
+    const x=a.x, y0=Math.min(a.y,b.y), y1=Math.max(a.y,b.y);
+    for(let y=y0+1;y<=y1-1;y++) if(stumpAt(x,y)) return true;
   }
   return false;
 }
-function canPlacePlank(len, sx, sy, tx, ty){
-  const dx = tx - sx, dy = ty - sy;
+function canPlacePlank(len, sx,sy, tx,ty){
+  const dx=tx-sx, dy=ty-sy;
   if(dx!==0 && dy!==0) return false;
-  const dist = Math.abs(dx)+Math.abs(dy);
-  if(dist!==len) return false;
-  const dir = (dy===0)?'h':'v';
-  const newP = {len, x:Math.min(sx,tx), y:Math.min(sy,ty), dir};
+  if(Math.abs(dx)+Math.abs(dy)!==len) return false;
+
+  // rantasääntö: jos jompikumpi pää rannalla → vain pysty; ei ranta–ranta
+  const aBank=(sy===-1||sy===H), bBank=(ty===-1||ty===H);
+  if(aBank||bBank){
+    if(sx!==tx) return false;
+    if(aBank&&bBank) return false;
+  }
+
+  const newP={len,x:Math.min(sx,tx),y:Math.min(sy,ty),dir:(dy===0?'h':'v')};
   if(passesOverStump(newP)) return false;
   if(crossesExisting(newP)) return false;
   return true;
 }
 
-// ====== Renderöinti (SVG) ======
+/* ===== render ===== */
 function render(){
-  const pad = 24;
-  const width = W*CELL + pad*2, height = (H+2)*CELL + pad*2;
-  board.setAttribute('viewBox', `0 0 ${width} ${height}`);
-  board.innerHTML = '';
+  const pad=24, width=W*CELL+pad*2, height=(H+2)*CELL+pad*2;
+  board.setAttribute('viewBox',`0 0 ${width} ${height}`);
+  board.innerHTML='';
 
-  // Vesi ja pankit
-  const gBg = svg('g');
-  gBg.appendChild(rect(pad, pad+CELL*1, W*CELL, H*CELL, {fill:'var(--water)', rx:16}));
+  // tausta
+  const gBg=svg('g');
+  gBg.appendChild(rect(pad, pad+CELL, W*CELL, H*CELL, {fill:'var(--water)', rx:16}));
   gBg.appendChild(rect(pad, pad, W*CELL, CELL, {fill:'var(--bank)', rx:12}));
   gBg.appendChild(rect(pad, pad+CELL*(H+1), W*CELL, CELL, {fill:'var(--bank)', rx:12}));
   board.appendChild(gBg);
 
-  // Ruudukko
-  const grid = svg('g', {stroke:'#1f2937', 'stroke-width':2});
+  // ruudukko
+  const grid=svg('g',{stroke:'#1f2937','stroke-width':2});
   for(let x=0;x<=W;x++) grid.appendChild(line(pad+x*CELL, pad+CELL, pad+x*CELL, pad+CELL*(H+1)));
   for(let y=1;y<=H+1;y++) grid.appendChild(line(pad, pad+y*CELL, pad+W*CELL, pad+y*CELL));
   board.appendChild(grid);
 
   // Lankut
-  const gPlank = svg('g', {'stroke':'#00000022', 'stroke-width':1});
+  const gPlank=svg('g',{'stroke':'#00000022','stroke-width':1});
   for(const p of state.planks){
-    const [a,b] = plankEndpoints(p);
-    const x1 = pad + a.x*CELL + CELL/2; const y1 = pad + (a.y+1)*CELL + CELL/2;
-    const x2 = pad + b.x*CELL + CELL/2; const y2 = pad + (b.y+1)*CELL + CELL/2;
-    const len = Math.hypot(x2-x1,y2-y1);
-    const ang = Math.atan2(y2-y1,x2-x1)*180/Math.PI;
-    const thickness = 20;
-    const g = svg('g', {transform:`translate(${x1} ${y1}) rotate(${ang})`});
-    const fill = p.len===1?'var(--plank)':(p.len===2?'var(--plank2)':'var(--plank3)');
-    const r = svg('rect', {x:0, y:-thickness/2, width:len, height:thickness, fill, rx:10});
-    g.appendChild(r);
+    const [a,b]=plankEndpoints(p);
+    const x1=pad+a.x*CELL+CELL/2, y1=pad+(a.y+1)*CELL+CELL/2;
+    const x2=pad+b.x*CELL+CELL/2, y2=pad+(b.y+1)*CELL+CELL/2;
+    const len=Math.hypot(x2-x1,y2-y1), ang=Math.atan2(y2-y1,x2-x1)*180/Math.PI;
+    const g=svg('g',{transform:`translate(${x1} ${y1}) rotate(${ang})`});
+    const fill=p.len===1?'var(--plank)':(p.len===2?'var(--plank2)':'var(--plank3)');
+    g.appendChild(svg('rect',{x:0,y:-10,width:len,height:20,fill,rx:10}));
     g.appendChild(circle(0,0,6,{fill:'#00000033'}));
     g.appendChild(circle(len,0,6,{fill:'#00000033'}));
-    g.style.cursor = 'pointer';
-    g.addEventListener('click', ()=>onPlankClick(p));
+    g.style.cursor='pointer';
+    g.addEventListener('click',()=>onPlankClick(p));
     gPlank.appendChild(g);
   }
   board.appendChild(gPlank);
 
-  // Tolpat
-  const gSt = svg('g');
-  for(const s of state.stumps){
-    const cx = pad + s.x*CELL + CELL/2;
-    const cy = pad + (s.y+1)*CELL + CELL/2;
-    const c = circle(cx, cy, 10, {fill:'#a7f3d0', stroke:'#072', 'stroke-width':1});
-    c.style.cursor = 'pointer';
-    c.addEventListener('click', ()=>onStumpClick(s.x,s.y));
-    gSt.appendChild(c);
-  }
-  board.appendChild(gSt);
+  // Pankin rektit (ei kuuntelijoita) + S/G-tolpat
+  const gMarks=svg('g');
+  const topHot = rect(pad, pad, W*CELL, CELL, {fill:'#0000', 'pointer-events':'none'});
+  const botHot = rect(pad, pad+CELL*(H+1), W*CELL, CELL, {fill:'#0000', 'pointer-events':'none'});
+  gMarks.appendChild(topHot); gMarks.appendChild(botHot);
 
-  // Pankkien klikattavat alueet + START/GOAL pisteet
-  const gMarks = svg('g');
+  // S/G piirretään tolppina ja klikataan kuten stump
+  const startX=pad+state.start.col*CELL+CELL/2;
+  const startY=(state.start.side==='top')? (pad+CELL/2):(pad+(H+1.5)*CELL);
+  const goalX =pad+state.goal.col*CELL+CELL/2;
+  const goalY =(state.goal.side==='top')? (pad+CELL/2):(pad+(H+1.5)*CELL);
 
-  const topY = pad + CELL/2;
-  const botY = pad + (H+1.5)*CELL;
+  const sDot=circle(startX,startY,10,{fill:'#111827',stroke:'#16a34a','stroke-width':3});
+  sDot.style.cursor='pointer';
+  sDot.addEventListener('click',()=>onStumpClick(state.start.col, state.start.side==='top'?-1:H));
+  gMarks.appendChild(sDot);
 
-  // Klikattavat hot-alueet
-  const topHot = rect(pad, pad, W*CELL, CELL, {fill:'transparent'});
-  const botHot = rect(pad, pad + CELL*(H+1), W*CELL, CELL, {fill:'transparent'});
-  topHot.style.cursor = 'pointer';
-  botHot.style.cursor = 'pointer';
-  topHot.addEventListener('click', ()=>onBankClick('top'));
-  botHot.addEventListener('click', ()=>onBankClick('bottom'));
-  gMarks.appendChild(topHot);
-  gMarks.appendChild(botHot);
-
-  // Start (vihreä) oikealle pankille
-  const startX = pad + state.start.col*CELL + CELL/2;
-  const startY = (state.start.side==='top') ? topY : botY;
-  const startDot = circle(startX, startY, 16, {fill:'#16a34a', stroke:'#064e3b', 'stroke-width':2});
-  startDot.style.cursor = 'pointer';
-  startDot.addEventListener('click', ()=>onBankClick(state.start.side));
-  gMarks.appendChild(startDot);
-
-  // Goal (punainen) oikealle pankille
-  const goalX = pad + state.goal.col*CELL + CELL/2;
-  const goalY = (state.goal.side==='bottom') ? botY : topY;
-  const goalDot = circle(goalX, goalY, 16, {fill:'#dc2626', stroke:'#7f1d1d', 'stroke-width':2});
-  goalDot.style.cursor = 'pointer';
-  goalDot.addEventListener('click', ()=>onBankClick(state.goal.side));
-  gMarks.appendChild(goalDot);
+  const gDot=circle(goalX,goalY,10,{fill:'#111827',stroke:'#dc2626','stroke-width':3});
+  gDot.style.cursor='pointer';
+  gDot.addEventListener('click',()=>onStumpClick(state.goal.col, state.goal.side==='top'?-1:H));
+  gMarks.appendChild(gDot);
 
   board.appendChild(gMarks);
 
-  // Hiker PIIRRETÄÄN VIIMEISEKSI -> aina päällimmäisenä
-  const gH = svg('g');
+  // Tolpat (myös rannalla)
+  const gSt=svg('g');
+  for(const s of state.stumps){
+    const cx=pad+s.x*CELL+CELL/2, cy=pad+(s.y+1)*CELL+CELL/2;
+    const dot=circle(cx,cy,10,{fill:'#111827',stroke:'#e5e7eb','stroke-width':2});
+    dot.style.cursor='pointer';
+    dot.addEventListener('click',()=>onStumpClick(s.x,s.y));
+    gSt.appendChild(dot);
+  }
+  board.appendChild(gSt);
+
+  // Hiker
+  const gH=svg('g');
   if(state.hiker.pos==='stump'){
-    const cx = pad + state.hiker.x*CELL + CELL/2;
-    const cy = pad + (state.hiker.y+1)*CELL + CELL/2;
-    gH.appendChild(circle(cx, cy, 16, {fill:'#38bdf8', stroke:'#083344', 'stroke-width':2}));
-  } else {
-    const y = state.hiker.row<0 ? pad+CELL/2 : pad+(H+1.5)*CELL;
-    const x = pad + state.hiker.col*CELL + CELL/2;
-    gH.appendChild(circle(x, y, 16, {fill:'#38bdf8', stroke:'#083344', 'stroke-width':2}));
+    const cx=pad+state.hiker.x*CELL+CELL/2;
+    const cy=pad+(state.hiker.y+1)*CELL+CELL/2;
+    gH.appendChild(circle(cx,cy,16,{fill:'#38bdf8',stroke:'#083344','stroke-width':2}));
+  }else{
+    const y=state.hiker.row<0? pad+CELL/2: pad+(H+1.5)*CELL;
+    const cx=pad+state.hiker.col*CELL+CELL/2;
+    gH.appendChild(circle(cx,y,16,{fill:'#38bdf8',stroke:'#083344','stroke-width':2}));
   }
   board.appendChild(gH);
 
-  // HUD
-  movesEl.textContent = state.moves;
-  carryEl.textContent = state.carrying? `${state.carrying} yk.` : '–';
-  startLbl.textContent = `${state.start.side==='top'?'Ylä':'Ala'} pankki, sarake ${state.start.col+1}`;
-  goalLbl.textContent  = `${state.goal .side==='bottom'?'Ala':'Ylä'} pankki, sarake ${state.goal.col+1}`;
+  metaEl.textContent=state._meta||'';
+  movesEl.textContent=state.moves;
 }
 
-// ====== Interaktio ======
-
-function bankCol(side){
-  if(side === 'top'){
-    return (state.start.side === 'top') ? state.start.col : state.goal.col;
-  }else{ // 'bottom'
-    return (state.start.side === 'bottom') ? state.start.col : state.goal.col;
-  }
-}
-
-function onBankClick(side){
+/* ===== interaktio ===== */
+function onStumpClick(x,y){
   if(state.frozen) return;
-  const isTop = side==='top';
-  const bankY = isTop ? -1 : H;
-  const col   = bankCol(side);
 
-  // Pudota kannettava lankku pankkiin, jos pituus täsmää ja reitti on vapaa (ei risteä/ylitä tolppaa)
-  if(state.carrying && state.hiker.pos==='stump' && state.hiker.x===col){
-    const sy = state.hiker.y;
-    const targetLen = Math.abs(bankY - sy);
-    if(targetLen===state.carrying){
-      const tx = col, ty = bankY;
-      if(canPlacePlank(state.carrying, state.hiker.x, state.hiker.y, tx, ty)){
-        const startY = Math.min(sy, bankY);
-        state.planks.push({len:state.carrying, x:col, y:startY, dir:'v'});
-        state.carrying = 0;
-        state.moves++;
-        render();
-        return;
+  // 1) NOSTO – jos seisot tällä tolpalla
+  if(state.carrying===0 && state.hiker.pos==='stump' && state.hiker.x===x && state.hiker.y===y){
+    for(let i=0;i<state.planks.length;i++){
+      const p=state.planks[i], [a,b]=plankEndpoints(p);
+      if((a.x===x&&a.y===y)||(b.x===x&&b.y===y)){
+        state.carrying=p.len; state.planks.splice(i,1); render(); return;
       }
     }
   }
 
-  // Siirtyminen tolpasta pankkiin, jos lankku johtaa pankkiin
-  if(state.hiker.pos==='stump' && state.hiker.x===col){
-    const adj = neighborsFrom(state.hiker.x, state.hiker.y);
-    if(adj.some(p=>p.x===col && p.y===bankY)){
-      state.hiker = {pos:'bank', row:bankY, col};
-      state.moves++;
-      checkWin();
-      render();
-      return;
-    }
-  }
-
-  // Pankista ruudukkoon (jos pankista lähtee lankku)
-  const atThisBank = state.hiker.pos==='bank' && state.hiker.row===bankY;
-  if(atThisBank){
-    const opts = neighborsFrom(col, bankY);
-    if(opts.length){
-      const p = opts[0];
-      state.hiker = {pos:'stump', x:p.x, y:p.y};
-      state.moves++;
-      render();
-      return;
-    }
-  }
-}
-
-function onStumpClick(x,y){
-  if(state.frozen) return;
-  if(state.hiker.pos==='stump'){
-    const adj = neighborsFrom(state.hiker.x, state.hiker.y);
-    if(adj.some(p=>p.x===x && p.y===y)){
-      state.hiker.x=x; state.hiker.y=y; state.moves++;
-      checkWin(); render(); return;
-    }
-  } else if(atBankTop() && x===state.hiker.col && canEnterGridFromBank()){
-    const opts = neighborsFrom(state.hiker.col, -1);
-    if(opts.some(p=>p.x===x && p.y===y)){
-      state.hiker={pos:'stump', x, y}; state.moves++; render(); return;
-    }
-  } else if(atBankBottom() && x===state.hiker.col && canEnterGridFromBank()){
-    const opts = neighborsFrom(state.hiker.col, H);
-    if(opts.some(p=>p.x===x && p.y===y)){
-      state.hiker={pos:'stump', x, y}; state.moves++; render(); return;
-    }
-  }
-
-  // Aseta lankku (kantona)
+  // 2) LASKU – kantolankku tähän tolppaan
   if(state.carrying && state.hiker.pos==='stump'){
-    const sx = state.hiker.x, sy = state.hiker.y;
-    const dx = x - sx, dy = y - sy;
-    const len = state.carrying;
-    if(canPlacePlank(len, sx, sy, x, y)){
-      const dir = (dy===0)?'h':'v';
-      const ox = Math.min(sx,x), oy = Math.min(sy,y);
-      state.planks.push({len, x:ox, y:oy, dir});
-      state.carrying = 0; state.moves++; render();
+    const sx=state.hiker.x, sy=state.hiker.y, len=state.carrying;
+    const dx=x-sx, dy=y-sy;
+    if((dx===0||dy===0) && Math.abs(dx)+Math.abs(dy)===len){
+      if(canPlacePlank(len, sx,sy, x,y)){
+        state.planks.push({len, x:Math.min(sx,x), y:Math.min(sy,y), dir:(dy===0?'h':'v')});
+        state.carrying=0; state.moves++; render(); return;
+      }
     }
+  }
+
+  // 3) KÄVELY pankista stumpille
+  if(state.hiker.pos==='bank'){
+    const adj=neighborsFrom(state.hiker.col, state.hiker.row);
+    if(adj.some(p=>p.x===x&&p.y===y)){ state.hiker={pos:'stump',x,y}; render(); return; }
+  }else{
+    // 4) KÄVELY stumpilta stumpille
+    const adj=neighborsFrom(state.hiker.x, state.hiker.y);
+    if(adj.some(p=>p.x===x&&p.y===y)){ state.hiker={pos:'stump',x,y}; render(); return; }
   }
 }
 function onPlankClick(p){
-  if(state.frozen) return;
-  if(state.carrying) return;
-  const [a,b] = plankEndpoints(p);
-  if(state.hiker.pos==='stump' && ((state.hiker.x===a.x && state.hiker.y===a.y) || (state.hiker.x===b.x && state.hiker.y===b.y))){
-    state.carrying = p.len;
-    state.planks = state.planks.filter(q=>q!==p);
-    state.moves++;
-    render();
+  if(state.frozen||state.carrying) return;
+  const [a,b]=plankEndpoints(p);
+  if(state.hiker.pos==='stump' && ((state.hiker.x===a.x&&state.hiker.y===a.y)||(state.hiker.x===b.x&&state.hiker.y===b.y))){
+    for(let i=0;i<state.planks.length;i++){
+      if(state.planks[i]===p){ state.carrying=p.len; state.planks.splice(i,1); render(); return; }
+    }
   }
 }
 
-function checkWin(){
-  if(reachedGoal()){
-    state.frozen = true;
-    setTimeout(()=>alert(`Onnittelut! Pääsit maaliin ${state.moves} siirrolla.`), 10);
-  }
-}
-
-// ====== Editorin JSON → Pelitila
-// Editoriformaatti: rows=7, cols=5, rannat r=0 (ylä) ja r=6 (ala); vesi 1..5.
-// start/goal {r,c}; poles [{r,c}], planks [[r1,c1,r2,c2],...]
-// Huom! Start ja Goal voivat olla kumpi tahansa pankki JSONissa — tulkitaan dynaamisesti.
-function mapEditorToGame(p){
-  if(!(p && (p.cols===5) && (p.rows===7))) throw new Error('Väärä koko (vaaditaan 7×5).');
-  const toXY = (r,c)=>{
-    if(r===0)  return {x:c, y:-1};              // yläpankki
-    if(r===6)  return {x:c, y:H};               // alapankki
-    return {x:c, y:r-1};                        // vesi → 0..4
-  };
-  // start/goal
-  const s = toXY(p.start.r, p.start.c);
-  const g = toXY(p.goal.r,  p.goal.c);
-  const start = { side: (s.y===-1 ? 'top':'bottom'), col: s.x };
-  const goal  = { side: (g.y===H  ? 'bottom':'top'), col: g.x };
-
-  // tolpat
-  const stumps = [];
-  const seen = new Set();
-  (p.poles||[]).forEach(({r,c})=>{
-    const {x,y} = toXY(r,c);
-    if(y<0 || y>H) return; // älä lisää pankkien tolppia ruutulistaan
-    const k = `${x},${y}`; if(!seen.has(k)){ seen.add(k); stumps.push({x,y}); }
-  });
-
-  // lankut (luetaan sellaisenaan, ei automaattitarkastuksia lähtödatasta)
-  const planks = [];
-  (p.planks||[]).forEach(([r1,c1,r2,c2])=>{
-    const a = toXY(r1,c1), b = toXY(r2,c2);
-    const dx = b.x - a.x, dy = b.y - a.y;
-    if(dx!==0 && dy!==0) return;        // vain suora
-    const len = Math.abs(dx)+Math.abs(dy);
-    const dir = (dy===0)?'h':'v';
-    const x = Math.min(a.x,b.x);
-    const y = Math.min(a.y,b.y);
-    planks.push({len, x, y, dir});
-  });
-
-  return {start, goal, stumps, planks};
-}
-
-function applyMappedPuzzle(m){
-  state.start = m.start;
-  state.goal  = m.goal;
-  state.stumps = m.stumps.slice();
-  state.planks = m.planks.slice();
-
-  state.hiker = { pos:'bank', row:(state.start.side==='top' ? -1 : H), col: state.start.col };
-  state.carrying = 0;
-  state.moves = 0;
-  state.frozen = false;
-
-  // Tallenna puhdas alkutilanne erilliseen snapshot-muuttujaan
-  const cleanInitial = {
-    start: state.start,
-    goal: state.goal,
-    stumps: state.stumps,
-    planks: state.planks,
-    hiker: state.hiker,
-    carrying: 0,
-    moves: 0,
-    frozen: false
-  };
-  state._snapshot = JSON.stringify(cleanInitial);  // HUOM: _snapshot, ei snapshot
-
-  render();
-}
-
-
-// ====== Lataa pulmat automaattisesti tiedostosta ======
+/* ===== puzzles ===== */
 async function loadPuzzlesFromFile(){
   try{
-    const text = await fetch('./puzzles_7x5.json').then(r=>r.text());
-    const raw = JSON.parse(text);
-    const list = Array.isArray(raw) ? raw : [raw];
-    loadedPuzzles = [];
-    for(const p of list){
-      try{ loadedPuzzles.push( mapEditorToGame(p) ); }
-      catch(err){ /* ohita virheellinen */ }
-    }
-    if(!loadedPuzzles.length){ toast('Tiedostossa ei kelvollisia pulmia'); return; }
-    // Täytä valikko
-    puzzleSel.innerHTML='';
-    loadedPuzzles.forEach((m,i)=>{
-      const o=document.createElement('option');
-      o.value=String(i);
-      o.textContent=`#${i+1} S:${m.start.side==='top'?'Y':'A'}${m.start.col+1} G:${m.goal.side==='bottom'?'A':'Y'}${m.goal.col+1} (planks:${m.planks.length})`;
-      puzzleSel.appendChild(o);
-    });
-    loadedIndex = 0;
-    puzzleSel.value = "0";
-    applyMappedPuzzle( loadedPuzzles[0] );
-  }catch(err){
-    console.error(err);
-    toast('Pulmien automaattinen lataus epäonnistui');
-  }
+    const resp=await fetch('./puzzles_7x5.json');
+    const all=await resp.json();
+    window._PUZZLES=all;
+    let i=+localStorage.getItem('rc_idx')||0;
+    i=Math.max(0,Math.min(all.length-1,i));
+    applyPuzzle(all[i],i,all.length);
+  }catch(e){ console.error(e); state._meta='Puzzles-tiedoston lataus epäonnistui'; render(); }
+}
+function mapEditorToGame(p){
+  if(!(p && p.cols===5 && p.rows===7)) throw new Error('Väärä koko (7×5)');
+  const toXY=(r,c)=> r===0?{x:c,y:-1} : r===6?{x:c,y:H} : {x:c,y:r-1};
+
+  const s=toXY(p.start.r,p.start.c), g=toXY(p.goal.r,p.goal.c);
+  const start={side:(s.y===-1?'top':'bottom'), col:s.x};
+  const goal ={side:(g.y===-1?'top':'bottom'), col:g.x};
+
+  // SALLI tolpat myös rannoilla (ei suodatusta pois)
+  const stumps=[]; const seen=new Set();
+  (p.poles||[]).forEach(({r,c})=>{
+    const {x,y}=toXY(r,c);
+    const k=`${x},${y}`; if(!seen.has(k)){ seen.add(k); stumps.push({x,y}); }
+  });
+
+  const planks=[];
+  (p.planks||[]).forEach(([r1,c1,r2,c2])=>{
+    const a=toXY(r1,c1), b=toXY(r2,c2);
+    const dx=b.x-a.x, dy=b.y-a.y;
+    if(dx!==0 && dy!==0) return;
+    const len=Math.abs(dx)+Math.abs(dy);
+    planks.push({len, x:Math.min(a.x,b.x), y:Math.min(a.y,b.y), dir:(dy===0?'h':'v')});
+  });
+
+  return {start,goal,stumps,planks};
+}
+function applyPuzzle(p,idx,total){
+  const m=mapEditorToGame(p);
+  state.start=m.start; state.goal=m.goal;
+  state.stumps=m.stumps.slice(); state.planks=m.planks.slice();
+  state.hiker={pos:'bank', row:(state.start.side==='top'?-1:H), col:state.start.col};
+  state.carrying=0; state.moves=0; state.frozen=false;
+  state._meta=`Pulma ${idx+1}/${total}`;
+  state._snapshot=JSON.stringify({start:state.start,goal:state.goal,stumps:state.stumps,planks:state.planks,hiker:state.hiker,carrying:0,moves:0,_meta:state._meta});
+  render(); localStorage.setItem('rc_idx', idx);
 }
 
-// ====== Nappulat ======
-openBtn.addEventListener('click', ()=>{
-  const i = +puzzleSel.value;
-  if(!(i>=0) || !loadedPuzzles[i]){ toast('Ei valittua pulmaa'); return; }
-  loadedIndex = i;
-  applyMappedPuzzle( loadedPuzzles[i] );
+/* ===== nav ===== */
+document.getElementById('prev').addEventListener('click',()=>{
+  const all=window._PUZZLES||[]; if(!all.length) return;
+  let i=(+localStorage.getItem('rc_idx')||0)-1; if(i<0) i=all.length-1;
+  applyPuzzle(all[i],i,all.length);
 });
-nextBtn.addEventListener('click', ()=>{
-  if(!loadedPuzzles.length){ toast('Ei ladattuja pulmia'); return; }
-  loadedIndex = (loadedIndex+1+loadedPuzzles.length) % loadedPuzzles.length;
-  puzzleSel.value = String(loadedIndex);
-  applyMappedPuzzle( loadedPuzzles[loadedIndex] );
+document.getElementById('next').addEventListener('click',()=>{
+  const all=window._PUZZLES||[]; if(!all.length) return;
+  let i=(+localStorage.getItem('rc_idx')||0)+1; if(i>=all.length) i=0;
+  applyPuzzle(all[i],i,all.length);
 });
-
-document.getElementById('reset').addEventListener('click', ()=>{
-  const snap = state._snapshot;          // ota talteen ennen Object.assignia
-  if(!snap) return;                      // varmistus
-
-  Object.assign(state, JSON.parse(snap)); // palauta alkutilanne
-  state._snapshot = snap;                // PIDÄ snapshot tallessa myös seuraavaa kertaa varten
-  render();
+document.getElementById('reset').addEventListener('click',()=>{
+  const s=state._snapshot; if(!s) return;
+  Object.assign(state, JSON.parse(s)); state._snapshot=s; render();
 });
 
-// Ensikäynnistys: lataa puzzles_7x5.json
+/* ===== responsive fix ===== */
+function fixLandscapeLayout(){
+  const wrap = document.querySelector('.wrap');
+  if(!wrap) return;
+  
+  const h1 = document.querySelector('h1');
+  const panel = document.querySelector('.panel');
+  const body = document.body;
+  
+  const h1Height = h1?.offsetHeight || 0;
+  const panelHeight = panel?.offsetHeight || 0;
+  const paddingTop = parseInt(getComputedStyle(body).paddingTop);
+  const paddingBottom = parseInt(getComputedStyle(body).paddingBottom);
+  const gap = parseInt(getComputedStyle(body).gap);
+  
+  const totalReserved = h1Height + panelHeight + paddingTop + paddingBottom + gap * 2;
+  const availableHeight = window.innerHeight - totalReserved;
+  const maxWidth = wrap.offsetWidth;
+  
+  const targetHeight = Math.min(availableHeight, maxWidth * (7/5));
+  wrap.style.height = targetHeight + 'px';
+}
+
+window.addEventListener('orientationchange', () => setTimeout(fixLandscapeLayout, 100));
+window.addEventListener('resize', fixLandscapeLayout);
+fixLandscapeLayout();
+
+/* ===== init ===== */
 loadPuzzlesFromFile();
 </script>
 </body>
