@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover, user-scalable=no" />
   <title>River Crossing</title>
+  <link rel="apple-touch-icon" href="./icon-180.png">
   <style>
 :root{
   --bg:#0b1021; --ink:#e5e7eb; --muted:#94a3b8;
@@ -105,9 +106,10 @@ svg{
     start_url: "./",
     display: "standalone",
 
-    icons: [
-      { src: "data:image/svg+xml;utf8,<?xml version='1.0' encoding='UTF-8'?>\n<svg xmlns='http://www.w3.org/2000/svg' width='512' height='512' viewBox='0 0 512 512'><rect width='512' height='512' fill='%230b1021'/><rect x='32' y='96' width='448' height='64' rx='12' fill='%231f2937'/><rect x='32' y='352' width='448' height='64' rx='12' fill='%231f2937'/><g stroke='%23a7f3d0' stroke-width='12'>{grid}</g><g stroke='%23f3c98b' stroke-width='24' stroke-linecap='round'><line x1='96' y1='192' x2='416' y2='192'/><line x1='96' y1='272' x2='320' y2='272'/><line x1='192' y1='352' x2='416' y2='352'/></g><circle cx='96' cy='192' r='18' fill='%2338bdf8'/></svg>", sizes:"512x512", type:"image/svg+xml"}
-    ]
+"icons": [
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
   };
   manifest.icons[0].src = manifest.icons[0].src.replace('{grid}', Array.from({length:6},(_,i)=>`<line x1='${96+i*64}' y1='160' x2='${96+i*64}' y2='416'/>`).join(''));
   const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
@@ -174,9 +176,20 @@ function neighborsFrom(x,y){
   }
   return adj;
 }
+
 function reachedGoal(){
-  const gy = state.goal.side==='top' ? -1 : H;
-  return state.hiker.pos==='bank' && state.hiker.row===gy && state.hiker.col===state.goal.col;
+  const gy = state.goal.side === 'top' ? -1 : H;
+  // Voitto kun ollaan maalitolpan päällä (stump-tila)
+  if (state.hiker.pos === 'stump' &&
+      state.hiker.x === state.goal.col &&
+      state.hiker.y === gy) return true;
+
+  // Varalla: jos jokin logiikka pitääkin vaeltajan bank-tilassa
+  if (state.hiker.pos === 'bank' &&
+      state.hiker.col === state.goal.col &&
+      state.hiker.row === gy) return true;
+
+  return false;
 }
 
 /* ===== sijoitusvalidointi ===== */
@@ -350,11 +363,21 @@ function onStumpClick(x,y){
   // 3) KÄVELY pankista stumpille
   if(state.hiker.pos==='bank'){
     const adj=neighborsFrom(state.hiker.col, state.hiker.row);
-    if(adj.some(p=>p.x===x&&p.y===y)){ state.hiker={pos:'stump',x,y}; render(); return; }
+    if(adj.some(p=>p.x===x&&p.y===y)){ state.hiker = { pos:'stump', x, y };
+render();
+checkIfGoalReached();
+return;
+ }
   }else{
     // 4) KÄVELY stumpilta stumpille
     const adj=neighborsFrom(state.hiker.x, state.hiker.y);
-    if(adj.some(p=>p.x===x&&p.y===y)){ state.hiker={pos:'stump',x,y}; render(); return; }
+    if(adj.some(p=>p.x===x&&p.y===y)){ 
+  state.hiker={pos:'stump',x,y}; 
+  render(); 
+  checkIfGoalReached(); 
+  return; 
+}
+
   }
 }
 function onPlankClick(p){
@@ -365,6 +388,16 @@ function onPlankClick(p){
       if(state.planks[i]===p){ state.carrying=p.len; state.planks.splice(i,1); render(); return; }
     }
   }
+}
+
+function checkIfGoalReached() {
+  if (reachedGoal()) showWinDialog();
+}
+
+function showWinDialog(){
+  const dlg = document.getElementById('win-dialog');
+  dlg.classList.remove('hidden');
+  document.getElementById('close-dialog').onclick = () => dlg.classList.add('hidden');
 }
 
 /* ===== puzzles ===== */
@@ -461,5 +494,35 @@ fixLandscapeLayout();
 /* ===== init ===== */
 loadPuzzlesFromFile();
 </script>
+<!-- Loppudialogi -->
+<div id="win-dialog" class="dialog hidden">
+  <div class="dialog-content">
+    <h2>Onneksi olkoon!</h2>
+    <p>Pääsit maaliin 🎉</p>
+    <button id="close-dialog">OK</button>
+  </div>
+</div>
+
+<style>
+.dialog{
+  position:fixed; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(0,0,0,0.5);
+  z-index:1000;
+}
+.dialog.hidden{ display:none; }
+.dialog-content{
+  background:#fff; color:#111;
+  padding:24px 32px; border-radius:12px;
+  text-align:center; font-family:-apple-system, sans-serif;
+  max-width:280px;
+}
+.dialog-content h2{ margin-top:0; }
+.dialog-content button{
+  margin-top:12px; padding:8px 20px; border:none;
+  background:#0f172a; color:#fff; border-radius:6px; font-size:16px;
+}
+</style>
+
 </body>
 </html>
