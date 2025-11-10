@@ -118,7 +118,7 @@ svg{
   document.head.appendChild(link);
 
   if('serviceWorker' in navigator && !location.href.startsWith('blob:') && !location.href.startsWith('data:')){
-    const swCode = `self.addEventListener('install',e=>{self.skipWaiting(); e.waitUntil(caches.open('rc-v1').then(c=>c.addAll(['./','./puzzles_7x5.json'])))})\nself.addEventListener('activate',e=>self.clients.claim());\nself.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)))})`;
+    const swCode = `self.addEventListener('install',e=>{self.skipWaiting(); e.waitUntil(caches.open('rc-v2').then(c=>c.addAll(['./','./puzzles_7x5.json'])))})\nself.addEventListener('activate',e=>self.clients.claim());\nself.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)))})`;
     const swBlob = new Blob([swCode], {type:'text/javascript'});
     const swUrl = URL.createObjectURL(swBlob);
     navigator.serviceWorker.register(swUrl).catch(()=>{});
